@@ -1,6 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using StackOverflowTags_t1.Interfaces;
-using StackOverflowTags_t1.Repositories;
+using StackOverflowTags.Data;
+using StackOverflowTags.Interfaces;
+using StackOverflowTags.Repositories;
 
 namespace StackOverflowTags
 {
@@ -10,7 +12,15 @@ namespace StackOverflowTags
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+
             builder.Services.AddScoped<ITagsRepository, TagsRepository>();
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+            });
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();

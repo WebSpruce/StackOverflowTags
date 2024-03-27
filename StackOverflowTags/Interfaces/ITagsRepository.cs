@@ -1,6 +1,6 @@
-﻿using StackOverflowTags_t1.Models;
+﻿using StackOverflowTags.Models;
 
-namespace StackOverflowTags_t1.Interfaces
+namespace StackOverflowTags.Interfaces
 {
     public interface ITagsRepository
     {

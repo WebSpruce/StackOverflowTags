@@ -1,10 +1,11 @@
-﻿using StackOverflowTags_t1.Interfaces;
-using StackOverflowTags_t1.Models;
+﻿using StackOverflowTags.Data;
+using StackOverflowTags.Interfaces;
+using StackOverflowTags.Models;
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 
-namespace StackOverflowTags_t1.Repositories
+namespace StackOverflowTags.Repositories
 {
     public class TagsRepository : ITagsRepository
     {
