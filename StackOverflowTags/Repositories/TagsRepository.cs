@@ -10,7 +10,8 @@ namespace StackOverflowTags.Repositories
     public class TagsRepository : ITagsRepository
     {
         private readonly HttpClient _client;
-        public TagsRepository()
+        private readonly ILogger<TagsRepository> _logger;
+        public TagsRepository(ILogger<TagsRepository> logger)
         {
             var handler = new HttpClientHandler();
             if (handler.SupportsAutomaticDecompression)
@@ -19,6 +20,8 @@ namespace StackOverflowTags.Repositories
             }
 
             _client = new HttpClient(handler);
+            _logger = logger;
+
         }
         public async Task<List<Tag>> GetAllAsync()
         {
@@ -27,6 +30,7 @@ namespace StackOverflowTags.Repositories
                 List<Tag> tagList = new List<Tag>();
                 for (int i = 1; i < 11; i++)
                 {
+                    _logger.LogInformation($"Start getting all tags from page {i} at {DateTime.UtcNow.ToLongTimeString()}");
                     using HttpResponseMessage response = await _client.GetAsync($"https://api.stackexchange.com/2.3/tags?page={i}&pagesize=100&order=desc&site=stackoverflow");
                     if (response.IsSuccessStatusCode)
                     {
@@ -40,13 +44,30 @@ namespace StackOverflowTags.Repositories
                             }
                         }
                     }
+                    else
+                    {
+                        _logger.LogError($"HttpResponse StatusCode: {response.StatusCode}");
+                    }
+                    _logger.LogInformation($"End getting all tags from page {i} at {DateTime.UtcNow.ToLongTimeString()}");
                 }
                 return tagList;
             }
             catch(Exception ex)
             {
-                Debug.WriteLine($"TagsRepository GetAllAsync error: {ex}");
+                _logger.LogError($"TagsRepository GetAllAsync error: {ex}");
                 return new List<Tag>();
+            }
+        }
+        public double GetPercentage(List<Tag> allTags, Tag tag)
+        {
+            try
+            {
+                double sumTagCount = allTags.Sum(t => t.Count);
+                return (tag.Count / sumTagCount) * 100;
+            }catch(Exception ex)
+            {
+                _logger.LogError($"TagsRepository Percentage error: {ex}");
+                return 0.0;
             }
         }
     }

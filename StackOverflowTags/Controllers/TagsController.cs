@@ -37,16 +37,18 @@ namespace StackOverflowTags.Controllers
                     await connection.OpenAsync();
                     using (var command = connection.CreateCommand())
                     {
-                        command.CommandText = "DELETE FROM sqlite_sequence WHERE name='Tag'";
+                        command.CommandText = "DELETE FROM sqlite_sequence WHERE name='Tag'";   //reset auto_increment to 1
                         await command.ExecuteNonQueryAsync();
                     }
+
                     foreach (var tag in tagList)
                     {
                         await _context.Tag.AddAsync(tag);
+                        _logger.LogInformation($"{tag.Name}: {String.Format("{0:N2}", _tagsRepository.GetPercentage(tagList, tag))}%");
                     }
                     await _context.SaveChangesAsync();
-                    _logger.LogInformation($"All operations have completed receiving tags at {DateTime.UtcNow.ToLongTimeString()}");
 
+                    _logger.LogInformation($"All operations have completed receiving tags at {DateTime.UtcNow.ToLongTimeString()}");
                     return Ok(tagList);
                 }
                 else
@@ -57,8 +59,7 @@ namespace StackOverflowTags.Controllers
             }
             catch(Exception ex)
             {
-                Debug.WriteLine($"TagsController GetAll error: {ex}");
-                _logger.LogError($"Error while getting all tags.");
+                _logger.LogError($"Error while getting all tags: {ex}");
                 return NotFound();
             }
         }
