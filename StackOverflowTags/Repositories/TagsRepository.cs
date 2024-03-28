@@ -1,7 +1,6 @@
-﻿using StackOverflowTags.Data;
+﻿using StackOverflowTags.Helper;
 using StackOverflowTags.Interfaces;
 using StackOverflowTags.Models;
-using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 
@@ -68,6 +67,44 @@ namespace StackOverflowTags.Repositories
             {
                 _logger.LogError($"TagsRepository Percentage error: {ex}");
                 return 0.0;
+            }
+        }
+        public List<Tag> GetTagsPerPage(List<Tag> allTags, int page, int pageSize)
+        {
+            return allTags.Skip((page - 1) * pageSize).Take(pageSize).ToList() ?? new List<Tag>();
+        }
+        public List<Tag> GetSortedTags(List<Tag> allTags, TagSortingColumn tagSortingColumn, TagSortingOrder tagSortingOrder)
+        {
+            try
+            {
+                if (tagSortingOrder == TagSortingOrder.desc)
+                {
+                    if (tagSortingColumn == TagSortingColumn.Name)
+                    {
+                        allTags = allTags.OrderByDescending(tag => tag.Name).ToList();
+                    }
+                    else
+                    {
+                        allTags = allTags.OrderByDescending(tag => tag.Count).ToList();
+                    }
+                }
+                else
+                {
+                    if (tagSortingColumn == TagSortingColumn.Name)
+                    {
+                        allTags = allTags.OrderBy(tag => tag.Name).ToList();
+                    }
+                    else
+                    {
+                        allTags = allTags.OrderBy(tag => tag.Count).ToList();
+                    }
+                }
+                return allTags;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"TagsRepository GetSortedTags error: {ex}");
+                return new List<Tag>();
             }
         }
     }

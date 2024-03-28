@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StackOverflowTags.Models;
-using System.Diagnostics;
 using StackOverflowTags.Interfaces;
 using StackOverflowTags.Data;
 using Microsoft.EntityFrameworkCore;
+using StackOverflowTags.Helper;
 
 namespace StackOverflowTags.Controllers
 {
@@ -22,7 +22,7 @@ namespace StackOverflowTags.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<Tags>> GetAll()
+        public async Task<ActionResult<Tags>> GetAll(int page = 1, int pageSize = 10, TagSortingColumn sortOption = TagSortingColumn.Name, TagSortingOrder sortOrder = TagSortingOrder.asc)
         {
             try
             {
@@ -32,24 +32,20 @@ namespace StackOverflowTags.Controllers
                 {
                     _logger.LogInformation($"Resetting database values at {DateTime.UtcNow.ToLongTimeString()}");
                     await _context.Tag.ExecuteDeleteAsync();
+                    await ResetAutoIncrement.Reset(_context);
 
-                    var connection = _context.Database.GetDbConnection();
-                    await connection.OpenAsync();
-                    using (var command = connection.CreateCommand())
-                    {
-                        command.CommandText = "DELETE FROM sqlite_sequence WHERE name='Tag'";   //reset auto_increment to 1
-                        await command.ExecuteNonQueryAsync();
-                    }
-
-                    foreach (var tag in tagList)
-                    {
-                        await _context.Tag.AddAsync(tag);
-                        _logger.LogInformation($"{tag.Name}: {String.Format("{0:N2}", _tagsRepository.GetPercentage(tagList, tag))}%");
-                    }
+                    await _context.Tag.AddRangeAsync(tagList);
+                    tagList.ForEach(tag => _logger.LogInformation($"{tag.Name}: {String.Format("{0:N2}", _tagsRepository.GetPercentage(tagList, tag))}%"));
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation($"All operations have completed receiving tags at {DateTime.UtcNow.ToLongTimeString()}");
-                    return Ok(tagList);
+
+                    //pagination
+                    var tagsPerPage = _tagsRepository.GetTagsPerPage(tagList, page, pageSize);
+                    //sorting
+                    var sortedTags = _tagsRepository.GetSortedTags(tagsPerPage, sortOption, sortOrder);
+
+                    return Ok(sortedTags);
                 }
                 else
                 {
