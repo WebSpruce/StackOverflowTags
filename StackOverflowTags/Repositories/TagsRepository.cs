@@ -22,33 +22,24 @@ namespace StackOverflowTags.Repositories
             _logger = logger;
 
         }
-        public async Task<List<Tag>> GetAllAsync()
+        public async Task<List<Tag>> GetAllAsync(int amountOfTags)
         {
             try 
             { 
                 List<Tag> tagList = new List<Tag>();
-                for (int i = 1; i < 11; i++)
+                int fullPages = amountOfTags / 100;
+                int remainder = amountOfTags % 100;
+                for (int i = 1; i <= fullPages; i++)
                 {
-                    _logger.LogInformation($"Start getting all tags from page {i} at {DateTime.UtcNow.ToLongTimeString()}");
-                    using HttpResponseMessage response = await _client.GetAsync($"https://api.stackexchange.com/2.3/tags?page={i}&pagesize=100&order=desc&site=stackoverflow");
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var data = await response.Content.ReadAsStringAsync();
-                        var tags = JsonSerializer.Deserialize<Tags>(data);
-                        foreach (var item in tags.Items)
-                        {
-                            if (item != null)
-                            {
-                                item.Percentage = Math.Round(GetPercentage(tags.Items, item), 2, MidpointRounding.AwayFromZero);
-                                tagList.Add(item);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogError($"HttpResponse StatusCode: {response.StatusCode}");
-                    }
-                    _logger.LogInformation($"End getting all tags from page {i} at {DateTime.UtcNow.ToLongTimeString()}");
+                    await AddTagsFromPage(i, 100, tagList);
+                }
+                if(remainder > 0)
+                {
+                    await AddTagsFromPage(fullPages + 1, remainder, tagList);
+                }
+                if(tagList.Count > amountOfTags)
+                {
+                    tagList = tagList.Take(amountOfTags).ToList();
                 }
                 return tagList;
             }
@@ -57,6 +48,29 @@ namespace StackOverflowTags.Repositories
                 _logger.LogError($"TagsRepository GetAllAsync error: {ex}");
                 return new List<Tag>();
             }
+        }
+        public async Task AddTagsFromPage(int page, int pageSize, List<Tag> tagList)
+        {
+            _logger.LogInformation($"Start getting all tags from page {page} at {DateTime.UtcNow.ToLongTimeString()}");
+            using HttpResponseMessage response = await _client.GetAsync($"https://api.stackexchange.com/2.3/tags?page={page}&pagesize={pageSize}&order=desc&site=stackoverflow");
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadAsStringAsync();
+                var tags = JsonSerializer.Deserialize<Tags>(data);
+                foreach (var item in tags.Items)
+                {
+                    if (item != null)
+                    {
+                        item.Percentage = Math.Round(GetPercentage(tags.Items, item), 2, MidpointRounding.AwayFromZero);
+                        tagList.Add(item);
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogError($"HttpResponse StatusCode: {response.StatusCode}");
+            }
+            _logger.LogInformation($"End getting all tags from page {page} at {DateTime.UtcNow.ToLongTimeString()}");
         }
         public double GetPercentage(List<Tag> allTags, Tag tag)
         {
