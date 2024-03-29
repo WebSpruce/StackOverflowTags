@@ -35,7 +35,6 @@ namespace StackOverflowTags.Controllers
                     await ResetAutoIncrement.Reset(_context);
 
                     await _context.Tag.AddRangeAsync(tagList);
-                    tagList.ForEach(tag => _logger.LogInformation($"{tag.Name}: {String.Format("{0:N2}", _tagsRepository.GetPercentage(tagList, tag))}%"));
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation($"All operations have completed receiving tags at {DateTime.UtcNow.ToLongTimeString()}");

@@ -14,6 +14,8 @@ namespace StackOverflowTags.Models
         public bool Is_Required { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
+        [JsonPropertyName("percentage")]
+        public double Percentage { get; set; }
         [JsonPropertyName("name")]
         public string Name { get; set; }
         [JsonPropertyName("last_activity_date")]

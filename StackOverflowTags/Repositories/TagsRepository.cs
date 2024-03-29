@@ -34,11 +34,12 @@ namespace StackOverflowTags.Repositories
                     if (response.IsSuccessStatusCode)
                     {
                         var data = await response.Content.ReadAsStringAsync();
-                        var json = JsonSerializer.Deserialize<Tags>(data);
-                        foreach (var item in json.Items)
+                        var tags = JsonSerializer.Deserialize<Tags>(data);
+                        foreach (var item in tags.Items)
                         {
                             if (item != null)
                             {
+                                item.Percentage = Math.Round(GetPercentage(tags.Items, item), 2, MidpointRounding.AwayFromZero);
                                 tagList.Add(item);
                             }
                         }
