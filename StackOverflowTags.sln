@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34714.143
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackOverflowTags", "StackOverflowTags\StackOverflowTags.csproj", "{6564CCB5-8DED-45A7-BBB0-DD8B37BD04CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackOverflowTags", "StackOverflowTags\StackOverflowTags.csproj", "{6564CCB5-8DED-45A7-BBB0-DD8B37BD04CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackOverflowTags.Tests", "StackOverflowTags.Tests\StackOverflowTags.Tests.csproj", "{CDA846CC-B9EE-4BA9-9F54-0C95137A6010}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{6564CCB5-8DED-45A7-BBB0-DD8B37BD04CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6564CCB5-8DED-45A7-BBB0-DD8B37BD04CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6564CCB5-8DED-45A7-BBB0-DD8B37BD04CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDA846CC-B9EE-4BA9-9F54-0C95137A6010}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDA846CC-B9EE-4BA9-9F54-0C95137A6010}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDA846CC-B9EE-4BA9-9F54-0C95137A6010}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDA846CC-B9EE-4BA9-9F54-0C95137A6010}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

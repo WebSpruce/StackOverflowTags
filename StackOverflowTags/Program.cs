@@ -30,7 +30,7 @@ namespace StackOverflowTags
                 {
                     Version = "v1",
                     Title = "StackOverflow_Tags_API",
-                    Description = "Api includes 1000 tags from SO ",
+                    Description = "Api includes tags from SO (When you first run it, you get 1000.)",
                 });
             });
 

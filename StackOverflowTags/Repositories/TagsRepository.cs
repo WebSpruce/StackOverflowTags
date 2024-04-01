@@ -1,4 +1,6 @@
-﻿using StackOverflowTags.Helper;
+﻿using Microsoft.EntityFrameworkCore;
+using StackOverflowTags.Data;
+using StackOverflowTags.Helper;
 using StackOverflowTags.Interfaces;
 using StackOverflowTags.Models;
 using System.Net;
@@ -10,7 +12,8 @@ namespace StackOverflowTags.Repositories
     {
         private readonly HttpClient _client;
         private readonly ILogger<TagsRepository> _logger;
-        public TagsRepository(ILogger<TagsRepository> logger)
+        private readonly AppDbContext _context;
+        public TagsRepository(ILogger<TagsRepository> logger, AppDbContext context)
         {
             var handler = new HttpClientHandler();
             if (handler.SupportsAutomaticDecompression)
@@ -20,7 +23,16 @@ namespace StackOverflowTags.Repositories
 
             _client = new HttpClient(handler);
             _logger = logger;
-
+            _context = context;
+        }
+        public TagsRepository(ILogger<TagsRepository> logger, HttpClient client)
+        {
+            _client = client;
+            _logger = logger;
+        }
+        public TagsRepository(AppDbContext context)
+        {
+            _context = context;
         }
         public async Task<List<Tag>> GetAllAsync(int amountOfTags)
         {
@@ -51,26 +63,33 @@ namespace StackOverflowTags.Repositories
         }
         public async Task AddTagsFromPage(int page, int pageSize, List<Tag> tagList)
         {
-            _logger.LogInformation($"Start getting all tags from page {page} at {DateTime.UtcNow.ToLongTimeString()}");
-            using HttpResponseMessage response = await _client.GetAsync($"https://api.stackexchange.com/2.3/tags?page={page}&pagesize={pageSize}&order=desc&site=stackoverflow");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var data = await response.Content.ReadAsStringAsync();
-                var tags = JsonSerializer.Deserialize<Tags>(data);
-                foreach (var item in tags.Items)
+                _logger.LogInformation($"Start getting all tags from page {page} at {DateTime.UtcNow.ToLongTimeString()}");
+                using HttpResponseMessage response = await _client.GetAsync($"https://api.stackexchange.com/2.3/tags?page={page}&pagesize={pageSize}&order=desc&site=stackoverflow");
+                if (response.IsSuccessStatusCode)
                 {
-                    if (item != null)
+                    var data = await response.Content.ReadAsStringAsync();
+                    var tags = JsonSerializer.Deserialize<Tags>(data);
+                    foreach (var item in tags.Items)
                     {
-                        item.Percentage = Math.Round(GetPercentage(tags.Items, item), 2, MidpointRounding.AwayFromZero);
-                        tagList.Add(item);
+                        if (item != null)
+                        {
+                            item.Percentage = Math.Round(GetPercentage(tags.Items, item), 2, MidpointRounding.AwayFromZero);
+                            tagList.Add(item);
+                        }
                     }
                 }
+                else
+                {
+                    _logger.LogError($"HttpResponse StatusCode: {response.StatusCode}");
+                }
+                _logger.LogInformation($"End getting all tags from page {page} at {DateTime.UtcNow.ToLongTimeString()}");
             }
-            else
+            catch(Exception ex)
             {
-                _logger.LogError($"HttpResponse StatusCode: {response.StatusCode}");
+                _logger.LogError($"TagsRepository AddTagsFromPage error: {ex}");
             }
-            _logger.LogInformation($"End getting all tags from page {page} at {DateTime.UtcNow.ToLongTimeString()}");
         }
         public double GetPercentage(List<Tag> allTags, Tag tag)
         {
@@ -121,6 +140,15 @@ namespace StackOverflowTags.Repositories
                 _logger.LogError($"TagsRepository GetSortedTags error: {ex}");
                 return new List<Tag>();
             }
+        }
+        public async Task SaveTagsToTheDatabase(List<Tag> tags)
+        {
+            await _context.Tag.AddRangeAsync(tags);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<List<Tag>> GetTagsFromTheDatabase()
+        {
+            return await _context.Tag.ToListAsync();
         }
     }
 }

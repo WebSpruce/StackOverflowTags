@@ -28,17 +28,21 @@ namespace StackOverflowTags.Controllers
             {
                 _logger.LogInformation($"Start getting all tags at {DateTime.UtcNow.ToLongTimeString()}");
                 List<Tag> tagList;
-                if (!_context.Tag.Any())
+                var tagsFromDB = await _tagsRepository.GetTagsFromTheDatabase();
+                if (!tagsFromDB.Any())
                 {
                     _logger.LogInformation($"The database doesn't contain any tags. 1000 tags will be retrieved from SO.");
                     tagList = await _tagsRepository.GetAllAsync(1000);
-                    await _context.Tag.AddRangeAsync(tagList);
-                    await _context.SaveChangesAsync();
+                    await _tagsRepository.SaveTagsToTheDatabase(tagList);
                 }
                 else
                 {
                     _logger.LogInformation($"The database contains tags.");
-                    tagList = await _context.Tag.ToListAsync();
+                    tagList = await _tagsRepository.GetTagsFromTheDatabase();
+                    if(pageSize > tagsFromDB.Count)
+                    {
+                        _logger.LogError($"A user can't retrieve more tags from the database than are available.");
+                    }
                 }
                 _logger.LogInformation($"All operations have completed receiving tags at {DateTime.UtcNow.ToLongTimeString()}");
 
