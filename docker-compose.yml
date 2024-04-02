@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  stackoverflowtags:
+    image: ${DOCKER_REGISTRY-}stackoverflowtags
+    build:
+      context: .
+      dockerfile: StackOverflowTags/Dockerfile

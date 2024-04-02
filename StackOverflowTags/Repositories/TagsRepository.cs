@@ -24,6 +24,8 @@ namespace StackOverflowTags.Repositories
             _client = new HttpClient(handler);
             _logger = logger;
             _context = context;
+
+            _context.Database.EnsureCreatedAsync().Wait();
         }
         public TagsRepository(ILogger<TagsRepository> logger, HttpClient client)
         {
